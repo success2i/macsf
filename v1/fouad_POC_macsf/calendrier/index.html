@@ -1,0 +1,279 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" type="text/css" href="lib/touch/resources/css/sencha-touch.css" media="all"/>
+        <script src="lib/touch/sencha-touch-all.js" type="text/javascript">
+        </script>
+	<script type="text/javascript" charset="utf-8" src="../cordova-2.2.0.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="Ext.ux.TouchCalendarEvents/resources/css/Ext.ux.TouchCalendarView.css" media="all"/>
+        <script src="Ext.ux.TouchCalendarEvents/Ext.ux.TouchCalendarView.js" type="text/javascript">
+        </script>
+        <script src="Ext.ux.TouchCalendarEvents/Ext.ux.TouchCalendarEvents.js" type="text/javascript">
+        </script>
+        <link rel="stylesheet" type="text/css" href="Ext.ux.TouchCalendarEvents/resources/css/Ext.ux.TouchCalendarEvents.css" media="all"/>
+        <script src="Ext.ux.TouchCalendarEvents/EventStore.js" type="text/javascript">
+        </script>
+        <script type="text/javascript">
+            
+            Ext.application({
+                name: 'Ext.ux.TouchCalendarEvents',
+                launch: function(){
+                
+                    calendarView = Ext.create('Ext.ux.TouchCalendarView', {
+                        //minDate: (new Date()).add(Date.DAY, -40),
+                        //maxDate: (new Date()).add(Date.DAY, 55),
+                        mode: 'month',
+                        weekStart: 0,
+                        value: new Date(),
+                        eventStore: eventStore,
+                        
+                        plugins: [Ext.create('Ext.ux.TouchCalendarEvents', {
+                            eventBarTpl: '{event}  {location}'
+                        })]
+                    });
+                    
+                    var calendarPanel = new Ext.Panel({
+                    	fullscreen: true,
+                        layout: 'fit',
+                        items: [calendarView, {
+                            xtype: 'toolbar',
+                            docked: 'top',
+                            items: [{
+                                xtype: 'button',
+                                text: 'Vue mois',
+                                handler: function(){
+                                    calendarView.setViewMode('month');
+                                }
+                            }, {
+                                xtype: 'button',
+                                text: 'Vue Semaine',
+                                handler: function(){
+                                    calendarView.setViewMode('week');
+                                }
+                            }, {
+                                xtype: 'button',
+                                text: 'Vue jour',
+                                handler: function(){
+                                    calendarView.setViewMode('day');
+                                }
+                            }]
+                        }]
+                    });
+                  
+                    calendarView.on('eventtap', function(record,event){
+                        if(record.get('location')=='')
+                            Ext.Msg.alert('','Vous ne pouvez pas prendre un rdv, votre associé est indisponible dans cette date!',Ext.emptyFn);
+                        else {
+                            if (!this.overlay) {
+                            this.overlay = Ext.Viewport.add({
+                               
+                                xtype: 'formpanel', 
+                                modal: true,                                
+                                hideOnMaskTap: true,
+                                showAnimation: {
+                                    type: 'popIn',
+                                    duration: 250,
+                                    easing: 'ease-out'
+                                },
+                                hideAnimation: {
+                                    type: 'popOut',
+                                    duration: 250,
+                                    easing: 'ease-out'
+                                },
+                                centered: true,
+                                width: Ext.os.deviceType == 'Phone' ? 290 : 400,
+                                height: Ext.os.deviceType == 'Phone' ? 420 : 420,
+                                styleHtmlContent: true,
+                                items: [
+                                    {   
+                                        xtype:'fieldset',
+                                        title: 'Ajout d\'un RDV avec votre conseiller',
+                                        instructions: 'Veuillez bien remplir le formulaire...',
+                                        width:Ext.os.deviceType == 'Phone' ? 240 : 360,
+                                        items :[
+                                         {
+                                            xtype: 'datepickerfield',
+                                            destroyPickerOnHide: true,
+                                            name : 'date',
+                                            required:true,
+                                            label: 'Date rdv',
+                                            value: new Date(),
+                                            picker: {
+                                                yearFrom: 1990
+                                            }
+                                        },
+                                        {
+                                            xtype: 'selectfield',
+                                            name : 'rank',
+                                            label: 'H. début',
+                                            required:true,
+                                            value:'10h',
+                                            options: [
+                                                {
+                                                    text : '8h',
+                                                    value: 'master'
+                                                },
+                                                {
+                                                    text : '8h30',
+                                                    value: 'journeyman'
+                                                },
+                                                {
+                                                    text : '9h',
+                                                    value: 'apprentice'
+                                                }, {
+                                                    text : '9h30',
+                                                    value: 'master'
+                                                },
+                                                {
+                                                    text : '10h',
+                                                    value: 'journeyman'
+                                                },
+                                                {
+                                                    text : '10h30',
+                                                    value: 'apprentice'
+                                                },{
+                                                    text : '11h',
+                                                    value: 'master'
+                                                },
+                                                {
+                                                    text : '11h30',
+                                                    value: 'journeyman'
+                                                },
+                                                {
+                                                    text : '12h',
+                                                    value: 'apprentice'
+                                                }, {
+                                                    text : '12h30',
+                                                    value: 'master'
+                                                },
+                                                {
+                                                    text : '13h',
+                                                    value: 'journeyman'
+                                                },
+                                                {
+                                                    text : '13h30',
+                                                    value: 'apprentice'
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            xtype: 'selectfield',
+                                            name : 'rank',
+                                            label: 'H. fin',
+                                            required:true,
+                                            value:'12h',
+                                            options: [
+                                                {
+                                                    text : '8h',
+                                                    value: 'master'
+                                                },
+                                                {
+                                                    text : '8h30',
+                                                    value: 'journeyman'
+                                                },
+                                                {
+                                                    text : '9h',
+                                                    value: 'apprentice'
+                                                }, {
+                                                    text : '9h30',
+                                                    value: 'master'
+                                                },
+                                                {
+                                                    text : '10h',
+                                                    value: 'journeyman'
+                                                },
+                                                {
+                                                    text : '10h30',
+                                                    value: 'apprentice'
+                                                },{
+                                                    text : '11h',
+                                                    value: 'master'
+                                                },
+                                                {
+                                                    text : '11h30',
+                                                    value: 'journeyman'
+                                                },
+                                                {
+                                                    text : '12h',
+                                                    value: 'apprentice'
+                                                }, {
+                                                    text : '12h30',
+                                                    value: 'master'
+                                                },
+                                                {
+                                                    text : '13h',
+                                                    value: 'journeyman'
+                                                },
+                                                {
+                                                    text : '13h30',
+                                                    value: 'apprentice'
+                                                }
+                                            ]
+                                        },{
+                                            xtype : 'textfield',
+                                            name  : 'name',
+                                            label : 'Objet',
+                                            placeHolder   : 'Objet du rdv...',
+                                            autoCapitalize: true,
+                                            required      : true,
+                                            clearIcon     : true
+                                        },{
+                                            xtype: 'textareafield',
+                                            name : 'bio',
+                                            label: 'Description',
+                                            placeHolder: 'Description du rdv...',
+                                            required:true
+                                        }
+                                    ]
+                                },
+                    {
+                        xtype: 'panel',
+                        defaults: {
+                            xtype: 'button',
+                            style: 'margin: 0.1em',
+                            flex : 1
+                        },
+                        layout: {
+                            type: 'hbox'
+                        },
+                        items: [
+                            {flex : 2,
+                                ui:'confirm',
+                                text: 'Valider',
+                                handler: function(){
+                                    calendarView.overlay.hide();
+                                    Ext.Msg.alert('','Votre RDV a été ajouté avec success!',Ext.emptyFn);
+                                }
+                            },
+                            {flex : 1,
+                                ui:'decline',
+                                text: 'Annuler',
+                                handler: function(){
+                                    calendarView.overlay.hide();
+                                }
+                            }
+                        ]
+                    }
+                                        ], 
+                                scrollable: true
+                            });
+                            }
+
+                            this.overlay.show();
+
+                        }
+                    });
+                   
+                    
+                }
+                
+                
+            });
+        </script>
+        <title></title>
+    </head>
+    <body>
+    </body>
+</html>
